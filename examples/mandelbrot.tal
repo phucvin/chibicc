@@ -1,0 +1,85 @@
+|0100
+  LIT2r 0000 main_ POP2r BRK
+( bss )
+@tmp_ $2
+@yy_ $2
+@xx_ $2
+@i_ $2
+@y_ $2
+@x_ $2
+@y0_ $2
+@x0_ $2
+( data )
+( text )
+
+@mul_ ( y* x* -- result* )
+    OVR2r LIT2r 0006 SUB2r STH2kr #0004 ADD2 STA2
+    STH2kr INC2 INC2 STA2
+    #0001 STH2kr STA2
+    STH2kr #0004 ADD2 LDA2 #8000 AND2 #0000 EQU2 ?&end.1
+    #0000 STH2kr #0004 ADD2 LDA2 SUB2 STH2kr #0004 ADD2 STA2
+    STH2kr LDA2k #ffff MUL2 SWP2 STA2
+
+  &end.1
+    STH2kr INC2 INC2 LDA2 #8000 AND2 #0000 EQU2 ?&end.2
+    #0000 STH2kr INC2 INC2 LDA2 SUB2 STH2kr INC2 INC2 STA2
+    STH2kr LDA2k #ffff MUL2 SWP2 STA2
+
+  &end.2
+    STH2kr LDA2 STH2kr INC2 INC2 LDA2 #00ff AND2 STH2kr #0004 ADD2 LDA2 #00ff AND2 MUL2 #08 SFT2 STH2kr INC2 INC2 LDA2 #00ff AND2 STH2kr #0004 ADD2 LDA2 #08 SFT2 MUL2 ADD2 STH2kr INC2 INC2 LDA2 #08 SFT2 STH2kr #0004 ADD2 LDA2 #00ff AND2 MUL2 ADD2 STH2kr INC2 INC2 LDA2 #08 SFT2 STH2kr #0004 ADD2 LDA2 #08 SFT2 MUL2 #0840 SFT SFT2 ADD2 MUL2 !&return
+    #0000
+
+  &return
+    POP2r JMP2r
+
+@main_ ( -- result* )
+    OVR2r #08df #08 DEO2 #12bf #0a DEO2 #549d #0c DEO2 #0140 #22 DEO2 #0120 #24 DEO2 #ff00 ;x0_ STA2
+
+  &begin.1
+    ;x0_ LDA2 #8000 EOR2 #8040 LTH2 #00 EQU ?&break.1
+    #ff70 ;y0_ STA2
+
+  &begin.2
+    ;y0_ LDA2 #8000 EOR2 #8000 GTH2 #00 SWP #01 EOR #0000 EQU2 ?&break.2
+    #0000 ;x_ STA2
+    #0000 ;y_ STA2
+    #0000 ;i_ STA2
+
+  &begin.3
+    ;i_ LDA2 #8000 EOR2 #8019 LTH2 #00 EQU ?&break.3
+    #8400 ;x_ LDA2 ;x_ LDA2 mul_
+    ;xx_ STA2k
+    POP2 ;y_ LDA2 ;y_ LDA2 mul_
+    ;yy_ STA2k
+    POP2 ADD2 #8000 EOR2 LTH2 #00 EQU ?&end.4
+    !&break.3
+
+  &end.4
+    ;xx_ LDA2 ;yy_ LDA2 SUB2 ;x0_ LDA2 #10 SFT2 ADD2 ;tmp_ STA2
+    ;y_ LDA2 ;x_ LDA2 mul_
+    #10 SFT2 ;y0_ LDA2 #10 SFT2 ADD2 ;y_ STA2
+    ;tmp_ LDA2 ;x_ STA2
+
+  &continue.3
+    ;i_ LDA2k INC2 SWP2 STA2
+    !&begin.3
+
+  &break.3
+    ;i_ LDA2 ;x0_ LDA2 ;y0_ LDA2 ADD2 #0001 AND2 ADD2 #03 SFT2 ;tmp_ STA2
+    ;x0_ LDA2 #0100 ADD2 #28 DEO2 ;y0_ LDA2 #0090 ADD2 #2a DEO2 ;tmp_ LDA2 NIP #2e DEO #0090 ;y0_ LDA2 SUB2 #2a DEO2 ;tmp_ LDA2 NIP #2e DEO
+
+  &continue.2
+    ;y0_ LDA2k INC2 SWP2 STA2
+    !&begin.2
+
+  &break.2
+
+  &continue.1
+    ;x0_ LDA2k INC2 SWP2 STA2
+    !&begin.1
+
+  &break.1
+    #0000
+
+  &return
+    POP2r JMP2r

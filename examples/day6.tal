@@ -1,0 +1,207 @@
+|0100
+  ;L.screen.hook #20 DEO2
+  LIT2r 0000 main_ POP2r BRK
+  @L.screen.hook LIT2r 0000 on_screen_ POP2 POP2r BRK
+( bss )
+@ball_ $8
+@right_ $4
+@left_ $4
+( data )
+@ball_sprite_
+  03 0f 1f 39 70 70 f9 ff 00 00 00 06 0f 0f 06 00
+  c0 f0 f8 fc fe fe ff ff 00 00 00 00 08 0c 06 06
+  ff ff 7f 7f 3f 1f 0f 03 00 00 00 00 18 0f 01 00
+  ff ff fe fe fc f8 f0 c0 06 06 0c 1c 38 f0 c0 00
+
+@paddle_sprite_
+  3f 7f e7 c3 c3 c3 c3 c3 00 00 18 3c 3c 3c 3c 3c
+  fc fe ff ff ff ff ff ff 00 00 00 00 00 00 06 06
+  c3 c3 c3 c3 e7 ff ff ff 3c 3c 3c 3c 18 00 00 00
+  ff ff ff ff ff ff ff ff 06 06 06 06 06 06 06 06
+  ff ff ff ff ff ff 7f 3f 00 00 00 00 00 00 00 00
+  ff ff ff ff ff ff fe fc 06 06 06 06 06 1e 3c 00
+
+@tile_background_
+  11 22 44 88 11 22 44 88
+( text )
+@sext
+  #80 ANDk EQU #ff MUL SWP JMP2r
+@sdiv
+    OVR #80 AND ?&b_neg  &b_pos    OVR2 POP #80 AND ?&a_neg_b_pos    DIV2 JMP2r  &a_neg_b_pos    SWP2 #0000 SWP2 SUB2 SWP2 DIV2 #0000 SWP2 SUB2 JMP2r
+  &b_neg    #0000 SWP2 SUB2 OVR2 POP #80 AND ?&a_neg_b_neg    DIV2 #0000 SWP2 SUB2 JMP2r
+  &a_neg_b_neg    #0000 ROT2 SUB2 SWP2 DIV2 JMP2r
+
+@draw_background_ ( -- result* )
+    OVR2r LIT2r 0008 SUB2r ;tile_background_ #2c DEO2 #24 DEI2 #0010 SUB2 STH2kr #0006 ADD2 STA2
+    #22 DEI2 STH2kr #0004 ADD2 STA2
+    #0010 STH2kr INC2 INC2 STA2
+
+  &begin.1
+    STH2kr INC2 INC2 LDA2 #8000 EOR2 STH2kr #0006 ADD2 LDA2 #8000 EOR2 LTH2 #00 EQU ?&break.1
+    #0000 STH2kr STA2
+
+  &begin.2
+    STH2kr LDA2 #8000 EOR2 STH2kr #0004 ADD2 LDA2 #8000 EOR2 LTH2 #00 EQU ?&break.2
+    STH2kr LDA2 #28 DEO2 STH2kr INC2 INC2 LDA2 #2a DEO2 #032f DEO
+
+  &continue.2
+    STH2kr LDA2k #0008 ADD2 SWP2 STA2
+    !&begin.2
+
+  &break.2
+
+  &continue.1
+    STH2kr INC2 INC2 LDA2k #0008 ADD2 SWP2 STA2
+    !&begin.1
+
+  &break.1
+    #0000
+
+  &return
+    POP2r JMP2r
+
+@reset_ ( -- result* )
+    OVR2r #22 DEI2 #0010 SUB2 #0002 sdiv/b_pos
+    ;ball_ STA2
+    #24 DEI2 #0010 SUB2 #0002 sdiv/b_pos
+    ;ball_ INC2 INC2 STA2
+    #0000
+
+  &return
+    POP2r JMP2r
+
+@update_ball_ ( -- result* )
+    OVR2r ;ball_ LDA2k ;ball_ #0004 ADD2 LDA2 ADD2 SWP2 STA2
+    ;ball_ INC2 INC2 LDA2k ;ball_ #0006 ADD2 LDA2 ADD2 SWP2 STA2
+    ;ball_ INC2 INC2 LDA2 #8000 EOR2 #8010 LTH2 ?&then.1
+    #24 DEI2 #0010 SUB2 #8000 EOR2 ;ball_ INC2 INC2 LDA2 #0010 ADD2 #8000 EOR2 LTH2 #00 EQU ?&end.2
+    #ffff ;ball_ #0006 ADD2 STA2
+
+  &end.2
+    !&end.1
+
+  &then.1
+    #0001 ;ball_ #0006 ADD2 STA2
+
+  &end.1
+    ;ball_ LDA2 #8000 EOR2 #8020 LTH2 ?&then.3
+    #22 DEI2 #0010 SUB2 #0010 SUB2 #8000 EOR2 ;ball_ LDA2 #0010 ADD2 #8000 EOR2 LTH2 #00 EQU ?&end.4
+    ;right_ INC2 INC2 LDA2 #0010 SUB2 #8000 EOR2 ;ball_ INC2 INC2 LDA2 #8000 EOR2 LTH2 #00 EQU ?&false.6
+    ;ball_ INC2 INC2 LDA2 #8000 EOR2 ;right_ INC2 INC2 LDA2 #0018 ADD2 #8000 EOR2 LTH2 #00 EQU ?&false.6
+    #0001 !&end.6
+
+  &false.6
+    #0000
+
+  &end.6
+    ORA ?&then.5
+    #22 DEI2 #8000 EOR2 ;ball_ LDA2 #8000 EOR2 GTH2 #00 SWP #01 EOR #0000 EQU2 ?&end.7
+    reset_
+    POP2
+
+  &end.7
+    !&end.5
+
+  &then.5
+    #ffff ;ball_ #0004 ADD2 STA2
+
+  &end.5
+
+  &end.4
+    !&end.3
+
+  &then.3
+    ;left_ INC2 INC2 LDA2 #0010 SUB2 #8000 EOR2 ;ball_ INC2 INC2 LDA2 #8000 EOR2 LTH2 #00 EQU ?&false.9
+    ;ball_ INC2 INC2 LDA2 #8000 EOR2 ;left_ INC2 INC2 LDA2 #0018 ADD2 #8000 EOR2 LTH2 #00 EQU ?&false.9
+    #0001 !&end.9
+
+  &false.9
+    #0000
+
+  &end.9
+    ORA ?&then.8
+    ;ball_ LDA2 #8000 EOR2 #8000 GTH2 #00 SWP #01 EOR #0000 EQU2 ?&end.10
+    reset_
+    POP2
+
+  &end.10
+    !&end.8
+
+  &then.8
+    #0001 ;ball_ #0004 ADD2 STA2
+
+  &end.8
+
+  &end.3
+    #0000
+
+  &return
+    POP2r JMP2r
+
+@update_paddles_ ( -- result* )
+    OVR2r LIT2r 0002 SUB2r #82 DEI #00 SWP STH2kr STA
+    POP LDAkr STHr #10 AND #00 EQU ?&end.1
+    ;left_ INC2 INC2 LDA2k #0001 SUB2 SWP2 STA2
+
+  &end.1
+    LDAkr STHr #20 AND #00 EQU ?&end.2
+    ;left_ INC2 INC2 LDA2k INC2 SWP2 STA2
+
+  &end.2
+    LDAkr STHr #01 AND #00 EQU ?&end.3
+    ;right_ INC2 INC2 LDA2k #0001 SUB2 SWP2 STA2
+
+  &end.3
+    LDAkr STHr #02 AND #00 EQU ?&end.4
+    ;right_ INC2 INC2 LDA2k INC2 SWP2 STA2
+
+  &end.4
+    #0000
+
+  &return
+    POP2r JMP2r
+
+@draw_ball_ ( color* -- result* )
+    OVR2r LIT2r 0002 SUB2r STH2kr STA
+    POP ;ball_ LDA2 #28 DEO2 ;ball_ INC2 INC2 LDA2 #2a DEO2 ;ball_sprite_ #2c DEO2 #1626 DEO LDAkr STHr #2f DEO LDAkr STHr #2f DEO #0000
+
+  &return
+    POP2r JMP2r
+
+@draw_paddle_ ( color* y* x* -- result* )
+    OVR2r LIT2r 0006 SUB2r STH2kr #0004 ADD2 STA2
+    STH2kr INC2 INC2 STA2
+    STH2kr STA
+    POP STH2kr #0004 ADD2 LDA2 #28 DEO2 STH2kr INC2 INC2 LDA2 #2a DEO2 ;paddle_sprite_ #2c DEO2 #1626 DEO LDAkr STHr #2f DEO LDAkr STHr #2f DEO LDAkr STHr #2f DEO #0000
+
+  &return
+    POP2r JMP2r
+
+@on_screen_ ( -- result* )
+    OVR2r #0040 ;left_ INC2 INC2 LDA2 ;left_ LDA2 draw_paddle_
+    POP2 #0040 ;right_ INC2 INC2 LDA2 ;right_ LDA2 draw_paddle_
+    POP2 #0040 draw_ball_
+    POP2 update_paddles_
+    POP2 update_ball_
+    POP2 #00c5 ;left_ INC2 INC2 LDA2 ;left_ LDA2 draw_paddle_
+    POP2 #00c5 ;right_ INC2 INC2 LDA2 ;right_ LDA2 draw_paddle_
+    POP2 #00c5 draw_ball_
+    POP2 #0000
+
+  &return
+    POP2r JMP2r
+
+@main_ ( -- result* )
+    OVR2r #2ce9 #08 DEO2 #01c0 #0a DEO2 #2ce5 #0c DEO2 draw_background_
+    POP2 #0010 ;left_ STA2
+    #22 DEI2 #0010 SUB2 #0010 SUB2 ;right_ STA2
+    #24 DEI2 #0018 SUB2 #0002 sdiv/b_pos
+    ;right_ INC2 INC2 STA2k
+    POP2 ;left_ INC2 INC2 STA2
+    reset_
+    POP2 #ffff ;ball_ #0004 ADD2 STA2
+    #0001 ;ball_ #0006 ADD2 STA2
+    #0000
+
+  &return
+    POP2r JMP2r

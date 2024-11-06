@@ -1,0 +1,47 @@
+void deo(char data, char device);
+void deo2(int data, char device);
+char dei(char device);
+int dei2(char device);
+int __builtin_va_arg();
+typedef void *va_list;
+void exit(char status);
+typedef struct {
+    char operation;
+    int length;
+    int src_page;
+    void* src_addr;
+    int dst_page;
+    void* dst_addr;
+} Expansion;
+int mul(unsigned x, unsigned y) {
+  int sign = 1;
+  if (x & 0x8000)
+    x = -x, sign *= -1;
+  if (y & 0x8000)
+    y = -y, sign *= -1;
+  return sign * (((y & 0xff) * (x & 0xff) >> 8) + (y & 0xff) * (x >> 8) +
+                 (y >> 8) * (x & 0xff) + ((y >> 8) * (x >> 8) << 8));
+}
+int x0, y0, x, y, i, xx, yy, tmp;
+void main(void) {
+  (deo2(0x08df, 0x08), deo2(0x12bf, 0x0a), deo2(0x549d, 0x0c));
+  (deo2(320, 0x22), deo2(288, 0x24));
+  for (x0 = -256; x0 < 64; ++x0) {
+    for (y0 = -144; y0 <= 0; ++y0) {
+      x = 0;
+      y = 0;
+      for (i = 0; i < 25; ++i) {
+        if ((xx = mul(x, x)) + (yy = mul(y, y)) > 4 * 256)
+          break;
+        tmp = xx - yy + x0 * 2;
+        y = 2 * mul(x, y) + y0 * 2;
+        x = tmp;
+      }
+      tmp = (unsigned)(i + (x0 + y0 & 1)) / 8;
+      (deo2(x0 + 256, 0x28), deo2(y0 + 144, 0x2a));
+      deo(tmp, 0x2e);
+      deo2(144 - y0, 0x2a);
+      deo(tmp, 0x2e);
+    }
+  }
+}
