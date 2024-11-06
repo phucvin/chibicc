@@ -1,0 +1,357 @@
+|0100
+  LIT2r 0000 main_ POP2r BRK
+( bss )
+( data )
+@L.data.4_
+  "%d 00
+@L.data.3_
+  "hell%c 20 "worl%c 0a 00
+@L.data.2_
+  "world 00
+@L.data.1_
+  "hello 20 "%s! 0a 00
+@L.data.0_
+  "hello 20 "%d 20 "%x 20 "%2x 0a 00
+( text )
+@sext
+  #80 ANDk EQU #ff MUL SWP JMP2r
+@ashr
+  SWP2
+  #8000 AND2k EQU2 #ff MUL DUP
+  DUP2 ROT2 EOR2 ROT2
+  NIP #0f AND SFT2
+  EOR2
+  JMP2r
+@sdiv
+    OVR #80 AND ?&b_neg  &b_pos    OVR2 POP #80 AND ?&a_neg_b_pos    DIV2 JMP2r  &a_neg_b_pos    SWP2 #0000 SWP2 SUB2 SWP2 DIV2 #0000 SWP2 SUB2 JMP2r
+  &b_neg    #0000 SWP2 SUB2 OVR2 POP #80 AND ?&a_neg_b_neg    DIV2 #0000 SWP2 SUB2 JMP2r
+  &a_neg_b_neg    #0000 ROT2 SUB2 SWP2 DIV2 JMP2r
+
+@printf_ ( format* -- result* )
+    OVR2r LIT2r 0048 SUB2r STH2kr #0046 ADD2 STA2
+    #0004 STH2kr #003e ADD2 STA2
+    #0000 STH2kr #003c ADD2 STA
+    POP
+
+  &continue.1
+    STH2kr #0046 ADD2 LDA2 LDA sext
+    #0000 EQU2 ?&break.1
+    STH2kr #003c ADD2 LDA ?&then.2
+    STH2kr #0046 ADD2 LDA2 LDA sext
+    #0025 EQU2 ?&then.3
+    STH2kr #0046 ADD2 LDA2 LDA #18 DEO !&end.3
+
+  &then.3
+    #0001 STH2kr #003c ADD2 STA
+    POP
+
+  &end.3
+    !&end.2
+
+  &then.2
+    STH2kr #0046 ADD2 LDA2 LDA sext
+    DUP2 #0031 EQU2 ?&case.5
+    DUP2 #0032 EQU2 ?&case.6
+    DUP2 #0033 EQU2 ?&case.7
+    DUP2 #0034 EQU2 ?&case.8
+    DUP2 #0078 EQU2 ?&case.9
+    DUP2 #0058 EQU2 ?&case.10
+    DUP2 #0064 EQU2 ?&case.11
+    DUP2 #0073 EQU2 ?&case.12
+    DUP2 #0063 EQU2 ?&case.13
+    DUP2 #0025 EQU2 ?&case.14
+    !&case.15
+    !&break.4
+
+  &case.14
+    #2518 DEO #0000 STH2kr #003c ADD2 STA
+    POP !&break.4
+
+  &case.13
+    SWP2 NIP #18 DEO #0000 STH2kr #003c ADD2 STA
+    POP !&break.4
+
+  &case.12
+    SWP2 STH2kr #0040 ADD2 STA2
+
+  &continue.16
+    STH2kr #0040 ADD2 LDA2 LDA sext
+    #0000 EQU2 ?&break.16
+    STH2kr #0040 ADD2 LDA2k INC2k ROT2 STA2
+    LDA #18 DEO !&continue.16
+
+  &break.16
+    #0000 STH2kr #003c ADD2 STA
+    POP !&break.4
+
+  &case.11
+    SWP2 STH2kr #0042 ADD2 STA2
+    STH2kr #0042 ADD2 LDA2 #8000 EOR2 #8000 LTH2 #00 EQU ?&end.17
+    #2d18 DEO #0000 STH2kr #0042 ADD2 LDA2 SUB2 STH2kr #0042 ADD2 STA2
+
+  &end.17
+    #a70f STH2kr #0042 ADD2 LDA2 #8000 EOR2 LTH2 #00 EQU ?&end.18
+    STH2kr #0042 ADD2 LDA2 #2710 sdiv/b_pos
+    #000a OVR2 OVR2 sdiv/b_pos
+    MUL2 SUB2 #0030 ADD2 NIP #18 DEO
+
+  &end.18
+    #83e7 STH2kr #0042 ADD2 LDA2 #8000 EOR2 LTH2 #00 EQU ?&end.19
+    STH2kr #0042 ADD2 LDA2 #03e8 sdiv/b_pos
+    #000a OVR2 OVR2 sdiv/b_pos
+    MUL2 SUB2 #0030 ADD2 NIP #18 DEO
+
+  &end.19
+    #8063 STH2kr #0042 ADD2 LDA2 #8000 EOR2 LTH2 #00 EQU ?&end.20
+    STH2kr #0042 ADD2 LDA2 #0064 sdiv/b_pos
+    #000a OVR2 OVR2 sdiv/b_pos
+    MUL2 SUB2 #0030 ADD2 NIP #18 DEO
+
+  &end.20
+    #8009 STH2kr #0042 ADD2 LDA2 #8000 EOR2 LTH2 #00 EQU ?&end.21
+    STH2kr #0042 ADD2 LDA2 #000a sdiv/b_pos
+    #000a OVR2 OVR2 sdiv/b_pos
+    MUL2 SUB2 #0030 ADD2 NIP #18 DEO
+
+  &end.21
+    STH2kr #0042 ADD2 LDA2 #000a OVR2 OVR2 sdiv/b_pos
+    MUL2 SUB2 #0030 ADD2 NIP #18 DEO #0000 STH2kr #003c ADD2 STA
+    POP !&break.4
+
+  &case.9
+
+  &case.10
+    SWP2 STH2kr #0042 ADD2 STA2
+    STH2kr #003e ADD2 LDA2 #20 SFT2 STH2kr #003a ADD2 STA2
+
+  &begin.22
+    STH2kr #003a ADD2 LDA2 #0000 EQU2 ?&break.22
+    STH2kr #0042 ADD2 LDA2 STH2kr #003a ADD2 LDA2k #0004 SUB2 SWP2 STA2k
+    POP2 ashr
+    #000f AND2 STH2kr #0038 ADD2 STA2
+    STH2kr #0038 ADD2 LDA2 #8009 STH2kr #0038 ADD2 LDA2 #8000 EOR2 LTH2 ?&then.23
+    #0030 !&end.23
+
+  &then.23
+    STH2kr #0046 ADD2 LDA2 LDA sext
+    #0021 SUB2
+
+  &end.23
+    ADD2 NIP #18 DEO
+
+  &continue.22
+    !&begin.22
+
+  &break.22
+    #0000 STH2kr #003c ADD2 STA
+    POP #0004 STH2kr #003e ADD2 STA2
+    !&break.4
+
+  &case.5
+
+  &case.6
+
+  &case.7
+
+  &case.8
+    STH2kr #0046 ADD2 LDA2 LDA sext
+    #0030 SUB2 STH2kr #003e ADD2 STA2
+    !&break.4
+
+  &case.15
+    #0000 !&return
+
+  &break.4
+    POP2
+
+  &end.2
+    STH2kr #0046 ADD2 LDA2k INC2 SWP2 STA2
+    !&continue.1
+
+  &break.1
+    #0000
+
+  &return
+    POP2r JMP2r
+
+@sprintf_ ( format* buf* -- result* )
+    OVR2r LIT2r 004a SUB2r STH2kr #0048 ADD2 STA2
+    STH2kr #0046 ADD2 STA2
+    #0004 STH2kr #003e ADD2 STA2
+    #0000 STH2kr #003c ADD2 STA
+    POP
+
+  &continue.1
+    STH2kr #0046 ADD2 LDA2 LDA sext
+    #0000 EQU2 ?&break.1
+    STH2kr #003c ADD2 LDA ?&then.2
+    STH2kr #0046 ADD2 LDA2 LDA sext
+    #0025 EQU2 ?&then.3
+    STH2kr #0046 ADD2 LDA2 LDA sext
+    STH2kr #0048 ADD2 LDA2k INC2k ROT2 STA2
+    STA
+    POP !&end.3
+
+  &then.3
+    #0001 STH2kr #003c ADD2 STA
+    POP
+
+  &end.3
+    !&end.2
+
+  &then.2
+    STH2kr #0046 ADD2 LDA2 LDA sext
+    DUP2 #0031 EQU2 ?&case.5
+    DUP2 #0032 EQU2 ?&case.6
+    DUP2 #0033 EQU2 ?&case.7
+    DUP2 #0034 EQU2 ?&case.8
+    DUP2 #0078 EQU2 ?&case.9
+    DUP2 #0058 EQU2 ?&case.10
+    DUP2 #0064 EQU2 ?&case.11
+    DUP2 #0073 EQU2 ?&case.12
+    DUP2 #0063 EQU2 ?&case.13
+    DUP2 #0025 EQU2 ?&case.14
+    !&case.15
+    !&break.4
+
+  &case.14
+    #0025 STH2kr #0048 ADD2 LDA2k INC2k ROT2 STA2
+    STA
+    POP #0000 STH2kr #003c ADD2 STA
+    POP !&break.4
+
+  &case.13
+    SWP2 STH2kr #0048 ADD2 LDA2k INC2k ROT2 STA2
+    STA
+    POP #0000 STH2kr #003c ADD2 STA
+    POP !&break.4
+
+  &case.12
+    SWP2 STH2kr #0040 ADD2 STA2
+
+  &continue.16
+    STH2kr #0040 ADD2 LDA2 LDA sext
+    #0000 EQU2 ?&break.16
+    STH2kr #0040 ADD2 LDA2k INC2k ROT2 STA2
+    LDA sext
+    STH2kr #0048 ADD2 LDA2k INC2k ROT2 STA2
+    STA
+    POP !&continue.16
+
+  &break.16
+    #0000 STH2kr #003c ADD2 STA
+    POP !&break.4
+
+  &case.11
+    SWP2 STH2kr #0042 ADD2 STA2
+    STH2kr #0042 ADD2 LDA2 #8000 EOR2 #8000 LTH2 #00 EQU ?&end.17
+    #002d STH2kr #0048 ADD2 LDA2k INC2k ROT2 STA2
+    STA
+    POP #0000 STH2kr #0042 ADD2 LDA2 SUB2 STH2kr #0042 ADD2 STA2
+
+  &end.17
+    #a70f STH2kr #0042 ADD2 LDA2 #8000 EOR2 LTH2 #00 EQU ?&end.18
+    STH2kr #0042 ADD2 LDA2 #2710 sdiv/b_pos
+    #000a OVR2 OVR2 sdiv/b_pos
+    MUL2 SUB2 #0030 ADD2 STH2kr #0048 ADD2 LDA2k INC2k ROT2 STA2
+    STA
+    POP
+
+  &end.18
+    #83e7 STH2kr #0042 ADD2 LDA2 #8000 EOR2 LTH2 #00 EQU ?&end.19
+    STH2kr #0042 ADD2 LDA2 #03e8 sdiv/b_pos
+    #000a OVR2 OVR2 sdiv/b_pos
+    MUL2 SUB2 #0030 ADD2 STH2kr #0048 ADD2 LDA2k INC2k ROT2 STA2
+    STA
+    POP
+
+  &end.19
+    #8063 STH2kr #0042 ADD2 LDA2 #8000 EOR2 LTH2 #00 EQU ?&end.20
+    STH2kr #0042 ADD2 LDA2 #0064 sdiv/b_pos
+    #000a OVR2 OVR2 sdiv/b_pos
+    MUL2 SUB2 #0030 ADD2 STH2kr #0048 ADD2 LDA2k INC2k ROT2 STA2
+    STA
+    POP
+
+  &end.20
+    #8009 STH2kr #0042 ADD2 LDA2 #8000 EOR2 LTH2 #00 EQU ?&end.21
+    STH2kr #0042 ADD2 LDA2 #000a sdiv/b_pos
+    #000a OVR2 OVR2 sdiv/b_pos
+    MUL2 SUB2 #0030 ADD2 STH2kr #0048 ADD2 LDA2k INC2k ROT2 STA2
+    STA
+    POP
+
+  &end.21
+    STH2kr #0042 ADD2 LDA2 #000a OVR2 OVR2 sdiv/b_pos
+    MUL2 SUB2 #0030 ADD2 STH2kr #0048 ADD2 LDA2k INC2k ROT2 STA2
+    STA
+    POP #0000 STH2kr #003c ADD2 STA
+    POP !&break.4
+
+  &case.9
+
+  &case.10
+    SWP2 STH2kr #0042 ADD2 STA2
+    STH2kr #003e ADD2 LDA2 #20 SFT2 STH2kr #003a ADD2 STA2
+
+  &begin.22
+    STH2kr #003a ADD2 LDA2 #0000 EQU2 ?&break.22
+    STH2kr #0042 ADD2 LDA2 STH2kr #003a ADD2 LDA2k #0004 SUB2 SWP2 STA2k
+    POP2 ashr
+    #000f AND2 STH2kr #0038 ADD2 STA2
+    STH2kr #0038 ADD2 LDA2 #8009 STH2kr #0038 ADD2 LDA2 #8000 EOR2 LTH2 ?&then.23
+    #0030 !&end.23
+
+  &then.23
+    STH2kr #0046 ADD2 LDA2 LDA sext
+    #0021 SUB2
+
+  &end.23
+    ADD2 STH2kr #0048 ADD2 LDA2k INC2k ROT2 STA2
+    STA
+    POP
+
+  &continue.22
+    !&begin.22
+
+  &break.22
+    #0000 STH2kr #003c ADD2 STA
+    POP #0004 STH2kr #003e ADD2 STA2
+    !&break.4
+
+  &case.5
+
+  &case.6
+
+  &case.7
+
+  &case.8
+    STH2kr #0046 ADD2 LDA2 LDA sext
+    #0030 SUB2 STH2kr #003e ADD2 STA2
+    !&break.4
+
+  &case.15
+    #0000 !&return
+
+  &break.4
+    POP2
+
+  &end.2
+    STH2kr #0046 ADD2 LDA2k INC2 SWP2 STA2
+    !&continue.1
+
+  &break.1
+    #0000
+
+  &return
+    POP2r JMP2r
+
+@main_ ( -- result* )
+    OVR2r LIT2r 0040 SUB2r #0064 #0064 #0064 ;L.data.0_ printf_
+    POP2 ;L.data.2_ ;L.data.1_ printf_
+    POP2 #0064 #006f ;L.data.3_ printf_
+    POP2 #04d2 ;L.data.4_ STH2kr sprintf_
+    POP2 #800f DEO BRK POP2 #0000
+
+  &return
+    POP2r JMP2r

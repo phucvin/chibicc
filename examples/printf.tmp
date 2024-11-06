@@ -1,0 +1,159 @@
+void deo(char data, char device);
+void deo2(int data, char device);
+char dei(char device);
+int dei2(char device);
+int __builtin_va_arg();
+typedef void *va_list;
+void exit(char status);
+typedef struct {
+    char operation;
+    int length;
+    int src_page;
+    void* src_addr;
+    int dst_page;
+    void* dst_addr;
+} Expansion;
+void printf(char *format, ...) {
+  va_list ap;
+  ;
+  int x;
+  char *s;
+  int width = 4;
+  _Bool command = 0;
+  while (*format) {
+    if (command) {
+      switch (*format) {
+      case '%':
+        deo('%', 0x18);
+        command = 0;
+        break;
+      case 'c':
+        deo(__builtin_va_arg(), 0x18);
+        command = 0;
+        break;
+      case 's':
+        s = __builtin_va_arg();
+        while (*s)
+          deo(*s++, 0x18);
+        command = 0;
+        break;
+      case 'd':
+        x = __builtin_va_arg();
+        if (x < 0) {
+          deo('-', 0x18);
+          x = -x;
+        }
+        if (x > 9999)
+          deo(x / 10000 % 10 + '0', 0x18);
+        if (x > 999)
+          deo(x / 1000 % 10 + '0', 0x18);
+        if (x > 99)
+          deo(x / 100 % 10 + '0', 0x18);
+        if (x > 9)
+          deo(x / 10 % 10 + '0', 0x18);
+        deo(x % 10 + '0', 0x18);
+        command = 0;
+        break;
+      case 'x':
+      case 'X':
+        x = __builtin_va_arg();
+        for (int i = width * 4; i;) {
+          int h = x >> (i -= 4) & 15;
+          deo(h + (h > 9 ? *format - 33 : '0'), 0x18);
+        }
+        command = 0;
+        width = 4;
+        break;
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+        width = *format - '0';
+        break;
+      default:
+        return;
+      };
+    } else if (*format == '%') {
+      command = 1;
+    } else {
+      deo(*format, 0x18);
+    }
+    ++format;
+  }
+}
+void sprintf(char *buf, char *format, ...) {
+  va_list ap;
+  ;
+  int x;
+  char *s;
+  int width = 4;
+  _Bool command = 0;
+  while (*format) {
+    if (command) {
+      switch (*format) {
+      case '%':
+        (*buf++ = ('%'));
+        command = 0;
+        break;
+      case 'c':
+        (*buf++ = (__builtin_va_arg()));
+        command = 0;
+        break;
+      case 's':
+        s = __builtin_va_arg();
+        while (*s)
+          (*buf++ = (*s++));
+        command = 0;
+        break;
+      case 'd':
+        x = __builtin_va_arg();
+        if (x < 0) {
+          (*buf++ = ('-'));
+          x = -x;
+        }
+        if (x > 9999)
+          (*buf++ = (x / 10000 % 10 + '0'));
+        if (x > 999)
+          (*buf++ = (x / 1000 % 10 + '0'));
+        if (x > 99)
+          (*buf++ = (x / 100 % 10 + '0'));
+        if (x > 9)
+          (*buf++ = (x / 10 % 10 + '0'));
+        (*buf++ = (x % 10 + '0'));
+        command = 0;
+        break;
+      case 'x':
+      case 'X':
+        x = __builtin_va_arg();
+        for (int i = width * 4; i;) {
+          int h = x >> (i -= 4) & 15;
+          (*buf++ = (h + (h > 9 ? *format - 33 : '0')));
+        }
+        command = 0;
+        width = 4;
+        break;
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+        width = *format - '0';
+        break;
+      default:
+        return;
+      };
+    } else if (*format == '%') {
+      command = 1;
+    } else {
+      (*buf++ = (*format));
+    }
+    ++format;
+  }
+}
+void main() {
+  printf("hello %d %x %2x\n", 100, 100, 100);
+  printf("hello %s!\n", "world");
+  printf("hell%c worl%c\n", 111, 100);
+  char test[64];
+  sprintf(test, "%d", 1234);
+  exit(0);
+}
